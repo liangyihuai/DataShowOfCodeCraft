@@ -41,18 +41,27 @@ public class ExecutionServiceImpl implements ExecutionService{
                 }
 
                 String[] lineSplited = line.split(" ");
-                if(lineSplited.length < 3)return result;
+                if(lineSplited.length < 3){
+                    result.setData("the format of your result is not right, should be: startId midId consumerId flow");
+                    return result;
+                }
 
                 serverDeployed.add(Integer.valueOf(lineSplited[0]));
 
                 int flow = Integer.valueOf(lineSplited[lineSplited.length-1]);
                 String nodeNearConsumer = lineSplited[lineSplited.length-3];
-                if(flow <= 0)return result;
+                if(flow <= 0){
+                    result.setData("the flow can not be less than 1");
+                    return result;
+                }
                 for(int k = 0; k < lineSplited.length-3; k++){
                     //更新每一个网络链路的容量， 如果小于0，就false；
                     Vertex currVertex = graph.getMatrix().get(lineSplited[k]).get(lineSplited[k+1]);
                     int leftVolume = currVertex.getVolume()-flow;
-                    if(leftVolume < 0)return result;
+                    if(leftVolume < 0){
+                        result.setData("A link is overload, the start network node:"+lineSplited[k]+", target network node is:"+lineSplited[k+1]+", overload: "+leftVolume);
+                        return result;
+                    }
                     currVertex.setVolume(leftVolume);
 
                     //统计链路流量费用
@@ -60,23 +69,40 @@ public class ExecutionServiceImpl implements ExecutionService{
                     totalCost += flowCostOfTheLink;
                 }
                 //更新消费节点的需求
-                if(!graph.getNetworkToConsumer().containsKey(nodeNearConsumer)) return result;
+                if(!graph.getNetworkToConsumer().containsKey(nodeNearConsumer)) {
+                    result.setData("the network node which is near a consumer node in the result of you algorithm is not exists in case file" +
+                            ", the network node id:"+ nodeNearConsumer);
+                    return result;
+                }
 
                 Consumer currConsumer = graph.getNetworkToConsumer().get(nodeNearConsumer);
 
-                if(!currConsumer.getId().equals(getConsumerId(lineSplited[lineSplited.length-2])))return result;
+                if(!currConsumer.getId().equals(getConsumerId(lineSplited[lineSplited.length-2]))){
+                    result.setData("The result of you algorithm is associated with wrong network node," +
+                            " the consumer id in the case file: "+currConsumer.getId()
+                            +", the consumer id in the result of you algorithm: "+lineSplited[lineSplited.length-2]);
+                    return result;
+                }
 
                 currConsumer.setRequirement(currConsumer.getRequirement()-flow);
             }
             //check consumer requirement
             for(Consumer consumer: graph.getNetworkToConsumer().values()){
-                if(consumer.getRequirement() > 0)return result;
+                if(consumer.getRequirement() > 0){
+                    result.setData("The flow requirement of the consumer is unsatisfied fully, the consumer id :"+consumer.getId());
+                    return result;
+                }
             }
             //统计服务器总费用
             totalCost += (serverDeployed.size()*dataset.getServerDeployCost());
             basicCost = graph.getNetworkToConsumer().size()*dataset.getServerDeployCost();
         }catch (Exception e){
             e.printStackTrace();
+            result.setData("Exception, I was refused to show it to you!  "+e.getMessage());
+            return result;
+        }
+        if(totalCost == 0){
+            result.setData("The total cost is 0, you know it !");
             return result;
         }
         result.setGood(true);

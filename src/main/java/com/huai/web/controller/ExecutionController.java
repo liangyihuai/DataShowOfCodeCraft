@@ -54,7 +54,7 @@ public class ExecutionController {
     @ResponseBody
     @RequestMapping(value = "/resultSet")
     public String processResultSet(HttpServletRequest request) throws IllegalStateException, IOException {
-        boolean result = false;
+        Result judgeResult = null;
         //将当前上下文初始化给  CommonsMutipartResolver （多部分解析器）
         CommonsMultipartResolver multipartResolver=new CommonsMultipartResolver(request.getSession().getServletContext());
         //检查form中是否有enctype="multipart/form-data"
@@ -69,49 +69,16 @@ public class ExecutionController {
                 MultipartFile dataSetFile = multiRequest.getFile(iter.next().toString());
                 if(iter.hasNext()){
                     MultipartFile resultSetFile = multiRequest.getFile(iter.next().toString());
-                    Result judgeResult = executionService.judgeResultSet(dataSetFile.getInputStream(), resultSetFile.getInputStream());
+                    judgeResult = executionService.judgeResultSet(dataSetFile.getInputStream(), resultSetFile.getInputStream());
                     if(judgeResult.isGood()){
                         return judgeResult.getData().toString();
                     }
                 }
             }
         }
-        return "NO";
-    }
-
-    /*public String  springUpload(HttpServletRequest request) throws IllegalStateException, IOException
-    {
-        long  startTime=System.currentTimeMillis();
-        //将当前上下文初始化给  CommonsMutipartResolver （多部分解析器）
-        CommonsMultipartResolver multipartResolver=new CommonsMultipartResolver(request.getSession().getServletContext());
-        //检查form中是否有enctype="multipart/form-data"
-        if(multipartResolver.isMultipart(request))
-        {
-            //将request变成多部分request
-            MultipartHttpServletRequest multiRequest=(MultipartHttpServletRequest)request;
-            //获取multiRequest 中所有的文件名
-            Iterator iter=multiRequest.getFileNames();
-
-            while(iter.hasNext())
-            {
-                //一次遍历所有文件
-                MultipartFile file=multiRequest.getFile(iter.next().toString());
-
-                file.getInputStream();
-//                if(file!=null)
-//                {
-//                    String path="E:/springUpload"+file.getOriginalFilename();
-//                    //上传
-//                    file.transferTo(new File(path));
-//                }
-
-            }
-
+        if(judgeResult == null) return "Please try again!";
+        else{
+            return "A little problem : "+judgeResult.getData().toString();
         }
-        long  endTime=System.currentTimeMillis();
-        System.out.println("方法三的运行时间："+String.valueOf(endTime-startTime)+"ms");
-        return "";
-    }*/
-
-
+    }
 }
