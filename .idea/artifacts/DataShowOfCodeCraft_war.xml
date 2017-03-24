@@ -1,0 +1,8 @@
+<component name="ArtifactManager">
+  <artifact type="war" name="DataShowOfCodeCraft:war">
+    <output-path>$PROJECT_DIR$/target</output-path>
+    <root id="archive" name="web.war">
+      <element id="artifact" artifact-name="DataShowOfCodeCraft:war exploded" />
+    </root>
+  </artifact>
+</component>

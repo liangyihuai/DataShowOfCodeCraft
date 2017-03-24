@@ -1,0 +1,205 @@
+
+<!DOCTYPE html>
+<html style="height: 96%;" xmlns:margin-left="http://www.w3.org/1999/xhtml">
+<head>
+    <meta charset="UTF-8">
+    <title>HUAWEI-CodeCraft2017</title>
+</head>
+<body style="height: 100%;">
+
+<form id="uploadFile">
+    <input id="dataSet" type="file" name="dataSetFile">
+    <input type="button" value="展示case" onclick="uploadDataSet()"; style="margin-right:20%"; />
+    <input id="resultSet" type="file" name="resultSetFile">
+    <input type="button" value="检查结果" onclick="uploadResult();"/>
+</form>
+
+<div id="main" style="width:100%; height: 96%"></div>
+<script src="http://echarts.baidu.com/build/dist/echarts.js"></script>
+<script src="js/jquery.min.js"></script>
+<script type="text/javascript">
+    function uploadResult() {
+        if(document.getElementById('dataSet').value == ''){
+            alert("请选择case文件")
+            return ;
+        }
+        if(document.getElementById('resultSet').value == ''){
+            alert("请选择结果文件")
+            return ;
+        }
+        var form = new FormData(document.getElementById("uploadFile"));
+
+        $.ajax({
+            url:"/data/resultSet.do",
+            type:"post",
+            data:form,
+            processData:false,
+            contentType:false,
+            success:function(data){
+                alert(data);
+            },
+            error:function(e){
+                alert("错误！！"+e.toString());
+            }
+        });
+    }
+
+    function uploadDataSet(){
+        var originForm =document.getElementById("uploadFile");
+        originForm.removeAttribute('resultSetFile');
+        if(document.getElementById('dataSet').value == ''){
+            alert("请选择case文件")
+            return ;
+        }
+        var form = new FormData(originForm);
+        $.ajax({
+            url:"/data/dataSet.do",
+            type:"post",
+            data:form,
+            processData:false,
+            contentType:false,
+            success:function(data){
+                show(data.nodeList, data.relationshipSet);
+            },
+            error:function(e){
+                alert("错误！！"+e.toString());
+            }
+        });
+    }
+
+    function show(nodes, links) {
+        require.config({
+            paths : {
+                echarts : 'http://echarts.baidu.com/build/dist'
+            }
+        });
+        require([ "echarts", "echarts/chart/force"], function(ec) {
+            var myChart = ec.init(document.getElementById('main'));
+            var option = {
+                title : {
+                    text: '网络节点-消费节点可视化',
+                    subtext: 'from： 梁义怀',
+                    x:'right',
+                    y:'bottom'
+                },
+                tooltip : {
+                    trigger: 'item',
+                    formatter: '{a} : {b}'
+                },
+                toolbox: {
+                    show : true,
+                    feature : {
+                        restore : {show: true},
+                        magicType: {show: true, type: ['force', 'chord']},
+                        saveAsImage : {show: true}
+                    }
+                },
+                legend: {
+                    x: 'left',
+                    data:['网络节点','消费节点']
+                },
+                series : [
+                    {
+                        type:'force',
+                        name : "数据",
+                        ribbonType: false,
+                        categories : [
+                            {
+                                name: '人物'
+                            },
+                            {
+                                name: '网络节点'
+                            },
+                            {
+                                name:'消费节点'
+                            }
+                        ],
+                        itemStyle: {
+                            normal: {
+                                label: {
+                                    show: true,
+                                    textStyle: {
+                                        color: '#333'
+                                    }
+                                },
+                                nodeStyle : {
+                                    brushType : 'both',
+                                    borderColor : 'rgba(255,215,0,0.4)',
+                                    borderWidth : 1
+                                },
+                                linkStyle: {
+                                    type: 'curve'
+                                }
+                            },
+                            emphasis: {
+                                label: {
+                                    show: false
+                                    // textStyle: null      // 默认使用全局文本样式，详见TEXTSTYLE
+                                },
+                                nodeStyle : {
+                                    //r: 30
+                                },
+                                linkStyle : {}
+                            }
+                        },
+                        useWorker: false,
+                        minRadius : 15,
+                        maxRadius : 25,
+                        gravity: 1.1,
+                        scaling: 1.1,
+                        roam: 'move',
+                        nodes: nodes,
+                        links :links
+                    }
+                ]
+            };
+            myChart.setOption(option);
+
+            var ecConfig = require('echarts/config');
+            function focus(param) {
+                var data = param.data;
+                var links = option.series[0].links;
+                var nodes = option.series[0].nodes;
+                if (
+                        data.source !== undefined
+                        && data.target !== undefined
+                ) { //点击的是边
+                    var sourceNode = nodes.filter(function (n) {return n.name == data.source})[0];
+                    var targetNode = nodes.filter(function (n) {return n.name == data.target})[0];
+                    console.log("选中了边 " + sourceNode.name + ' -> ' + targetNode.name + ' (' + data.weight + ')');
+                } else { // 点击的是点
+                    console.log("选中了" + data.name + '(' + data.value + ')');
+                }
+            }
+            myChart.on(ecConfig.EVENT.CLICK, focus)
+
+            myChart.on(ecConfig.EVENT.FORCE_LAYOUT_END, function () {
+                console.log(myChart.chart.force.getPosition());
+            });
+        });
+
+    }
+
+
+    /*
+     {category:1, name: '丽萨-乔布斯',value : 2},
+     {category:1, name: '保罗-乔布斯',value : 3},
+     {category:1, name: '克拉拉-乔布斯',value : 3},
+     {category:1, name: '劳伦-鲍威尔',value : 7},
+     {category:2, name: '史蒂夫-沃兹尼艾克',value : 5},
+     {category:2, name: '奥巴马',value : 8},
+
+    [
+        {source : '丽萨-乔布斯', target : '乔布斯', weight : 1, name: '女儿'},
+        {source : '保罗-乔布斯', target : '乔布斯', weight : 2, name: '父亲'},
+        {source : '克拉拉-乔布斯', target : '乔布斯', weight : 1, name: '母亲'},
+        {source : '劳伦-鲍威尔', target : '乔布斯', weight : 2},
+        {source : '比尔-盖茨', target : '奥巴马', weight : 6},
+        {source : '比尔-盖茨', target : '克拉拉-乔布斯', weight : 1},
+        {source : '蒂姆-库克', target : '奥巴马', weight : 1},
+        {source : 'source', target : 'target', weight : 1, name:'h'}
+    ]*/
+</script>
+
+</body>
+</html>
