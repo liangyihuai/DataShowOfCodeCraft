@@ -12,6 +12,7 @@ public class DataSet {
     private int networkNum;
     private List<Node> nodeList;
     private Set<Consumer> consumerSet;
+    private  int serverDeployCost;
 
     public DataSet(Set<Relationship> relationshipSet, int consumerNum, int networkNum) {
         this.relationshipSet = relationshipSet;
@@ -21,6 +22,14 @@ public class DataSet {
 
     public Set<Consumer> getConsumerSet() {
         return consumerSet;
+    }
+
+    public int getServerDeployCost() {
+        return serverDeployCost;
+    }
+
+    public void setServerDeployCost(int serverDeployCost) {
+        this.serverDeployCost = serverDeployCost;
     }
 
     public void setConsumerSet(Set<Consumer> consumerSet) {

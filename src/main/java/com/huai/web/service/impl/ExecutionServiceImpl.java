@@ -17,7 +17,14 @@ import java.util.Set;
 @Component
 public class ExecutionServiceImpl implements ExecutionService{
 
-    public boolean judgeResultSet(InputStream inputOfDataSet, InputStream inputOfResultSet){
+    public Result judgeResultSet(InputStream inputOfDataSet, InputStream inputOfResultSet){
+        Result result = new Result();
+
+        int totalCost = 0;
+        int basicCost = 0;
+        //存储服务器节点的id
+        Set<Integer> serverDeployed = new HashSet<Integer>();
+
         BufferedReader reader = null;
         try{
             DataSet dataset = parseDataSet(inputOfDataSet);
@@ -34,41 +41,54 @@ public class ExecutionServiceImpl implements ExecutionService{
                 }
 
                 String[] lineSplited = line.split(" ");
-                if(lineSplited.length < 3)return false;
+                if(lineSplited.length < 3)return result;
+
+                serverDeployed.add(Integer.valueOf(lineSplited[0]));
+
                 int flow = Integer.valueOf(lineSplited[lineSplited.length-1]);
                 String nodeNearConsumer = lineSplited[lineSplited.length-3];
-                if(flow <= 0)return false;
+                if(flow <= 0)return result;
                 for(int k = 0; k < lineSplited.length-3; k++){
                     //更新每一个网络链路的容量， 如果小于0，就false；
                     Vertex currVertex = graph.getMatrix().get(lineSplited[k]).get(lineSplited[k+1]);
                     int leftVolume = currVertex.getVolume()-flow;
-                    if(leftVolume < 0)return false;
+                    if(leftVolume < 0)return result;
                     currVertex.setVolume(leftVolume);
+
+                    //统计链路流量费用
+                    int flowCostOfTheLink = currVertex.getCost()*flow;
+                    totalCost += flowCostOfTheLink;
                 }
                 //更新消费节点的需求
-                if(!graph.getNetworkToConsumer().containsKey(nodeNearConsumer)) return false;
+                if(!graph.getNetworkToConsumer().containsKey(nodeNearConsumer)) return result;
 
                 Consumer currConsumer = graph.getNetworkToConsumer().get(nodeNearConsumer);
 
-                if(!currConsumer.getId().equals(getConsumerId(lineSplited[lineSplited.length-2])))return false;
+                if(!currConsumer.getId().equals(getConsumerId(lineSplited[lineSplited.length-2])))return result;
 
                 currConsumer.setRequirement(currConsumer.getRequirement()-flow);
             }
             //check consumer requirement
             for(Consumer consumer: graph.getNetworkToConsumer().values()){
-                if(consumer.getRequirement() > 0)return false;
+                if(consumer.getRequirement() > 0)return result;
             }
+            //统计服务器总费用
+            totalCost += (serverDeployed.size()*dataset.getServerDeployCost());
+            basicCost = graph.getNetworkToConsumer().size()*dataset.getServerDeployCost();
         }catch (Exception e){
             e.printStackTrace();
-            return false;
+            return result;
         }
-        return true;
+        result.setGood(true);
+        result.setData("The total cost of your algorithm is: "+totalCost+"; the basic cost is: "+basicCost);
+        return result;
     }
 
 
     public DataSet parseDataSet(InputStream inputStream){
         Set<Relationship> relationships = new HashSet<Relationship>();
         Set<Consumer> consumers = new HashSet<Consumer>();
+        int serverDeployCost = 0;
         BufferedReader br = null;
         int networkNum = 0;
         int linksNum = 0;
@@ -84,7 +104,7 @@ public class ExecutionServiceImpl implements ExecutionService{
 
             br.readLine();
 
-            int serverDeployCost = Integer.valueOf(br.readLine().trim());
+            serverDeployCost = Integer.valueOf(br.readLine().trim());
 
             br.readLine();
 
@@ -101,7 +121,6 @@ public class ExecutionServiceImpl implements ExecutionService{
             }
 
             br.readLine();
-
 
             for(int i = 0; i < consumerNum; i++){
                 String[] strs = br.readLine().split(" ");
@@ -142,6 +161,7 @@ public class ExecutionServiceImpl implements ExecutionService{
         DataSet dataset = new DataSet(relationships, consumerNum, networkNum);
         dataset.setNodeList(nodeList);
         dataset.setConsumerSet(consumers);
+        dataset.setServerDeployCost(serverDeployCost);
         return dataset;
     }
 

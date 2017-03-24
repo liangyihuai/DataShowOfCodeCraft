@@ -3,6 +3,7 @@ package com.huai.web.controller;
 
 import com.huai.web.pojo.DataSet;
 import com.huai.web.pojo.Relationship;
+import com.huai.web.pojo.Result;
 import com.huai.web.service.ExecutionService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Controller;
@@ -68,12 +69,14 @@ public class ExecutionController {
                 MultipartFile dataSetFile = multiRequest.getFile(iter.next().toString());
                 if(iter.hasNext()){
                     MultipartFile resultSetFile = multiRequest.getFile(iter.next().toString());
-                    result = executionService.judgeResultSet(dataSetFile.getInputStream(), resultSetFile.getInputStream());
+                    Result judgeResult = executionService.judgeResultSet(dataSetFile.getInputStream(), resultSetFile.getInputStream());
+                    if(judgeResult.isGood()){
+                        return judgeResult.getData().toString();
+                    }
                 }
             }
-
         }
-        if(result)return "YES"; else return "NO";
+        return "NO";
     }
 
     /*public String  springUpload(HttpServletRequest request) throws IllegalStateException, IOException

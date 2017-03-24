@@ -1,6 +1,7 @@
 package com.huai.web.service;
 
 import com.huai.web.pojo.DataSet;
+import com.huai.web.pojo.Result;
 
 import java.io.InputStream;
 
@@ -9,6 +10,6 @@ import java.io.InputStream;
  */
 
 public interface ExecutionService {
-    boolean judgeResultSet(InputStream inputOfDataSet, InputStream inputOfResultSet);
+    Result judgeResultSet(InputStream inputOfDataSet, InputStream inputOfResultSet);
     DataSet parseDataSet(InputStream inputStream);
 }
