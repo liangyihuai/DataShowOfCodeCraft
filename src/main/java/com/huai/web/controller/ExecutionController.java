@@ -1,6 +1,7 @@
 package com.huai.web.controller;
 
 
+import com.huai.web.DataSetException;
 import com.huai.web.pojo.DataSet;
 import com.huai.web.pojo.Relationship;
 import com.huai.web.pojo.Result;
@@ -30,8 +31,9 @@ public class ExecutionController {
 
     @ResponseBody
     @RequestMapping(value = "/dataSet")
-    public DataSet showDataSet(HttpServletRequest request) throws IllegalStateException, IOException {
+    public Result showDataSet(HttpServletRequest request) throws IllegalStateException, IOException {
 
+        Result result = new Result();
         long  startTime=System.currentTimeMillis();
         //将当前上下文初始化给  CommonsMutipartResolver （多部分解析器）
         CommonsMultipartResolver multipartResolver=new CommonsMultipartResolver(request.getSession().getServletContext());
@@ -45,10 +47,19 @@ public class ExecutionController {
             if(iter.hasNext()) {
                 //一次遍历所有文件
                 MultipartFile file=multiRequest.getFile(iter.next().toString());
-                return executionService.parseDataSet(file.getInputStream());
+                try {
+                    result.setData(executionService.parseDataSet(file.getInputStream()));
+                    result.setGood(true);
+                    return result;
+                } catch (DataSetException e) {
+                    e.printStackTrace();
+                    result.setData(e.getMessage().toString());
+                    return result;
+                }
             }
         }
-        return new DataSet(new HashSet<Relationship>(), 0, 0);
+        result.setData("something wrong!");
+        return result;
     }
 
     @ResponseBody

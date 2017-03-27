@@ -59,10 +59,14 @@
             processData:false,
             contentType:false,
             success:function(data){
-                show(data.nodeList, data.relationshipSet);
+                if(data.good){
+                    show(data.data.nodeList, data.data.relationshipSet);
+                }else{
+                    alert(data.data);
+                }
             },
             error:function(e){
-                alert("错误！！"+e.toString());
+                alert("网络异常！！");
             }
         });
     }

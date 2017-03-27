@@ -61,21 +61,15 @@ public class Relationship {
 
         Relationship that = (Relationship) o;
 
-        if (getWeight() != that.getWeight()) return false;
-        if (getCost() != that.getCost()) return false;
-        if (source != null ? !source.equals(that.source) : that.source != null) return false;
-        if (target != null ? !target.equals(that.target) : that.target != null) return false;
-        return getName() != null ? getName().equals(that.getName()) : that.getName() == null;
+        if (getSource() != null ? !getSource().equals(that.getSource()) : that.getSource() != null) return false;
+        return getTarget() != null ? getTarget().equals(that.getTarget()) : that.getTarget() == null;
 
     }
 
     @Override
     public int hashCode() {
-        int result = source != null ? source.hashCode() : 0;
-        result = 31 * result + (target != null ? target.hashCode() : 0);
-        result = 31 * result + (getName() != null ? getName().hashCode() : 0);
-        result = 31 * result + getWeight();
-        result = 31 * result + getCost();
+        int result = getSource() != null ? getSource().hashCode() : 0;
+        result = 31 * result + (getTarget() != null ? getTarget().hashCode() : 0);
         return result;
     }
 

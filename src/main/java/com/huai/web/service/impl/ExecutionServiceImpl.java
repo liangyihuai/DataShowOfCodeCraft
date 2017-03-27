@@ -1,5 +1,6 @@
 package com.huai.web.service.impl;
 
+import com.huai.web.DataSetException;
 import com.huai.web.pojo.*;
 import com.huai.web.service.*;
 import org.springframework.stereotype.Component;
@@ -19,7 +20,6 @@ public class ExecutionServiceImpl implements ExecutionService{
 
     public Result judgeResultSet(InputStream inputOfDataSet, InputStream inputOfResultSet){
         Result result = new Result();
-
         int totalCost = 0;
         int basicCost = 0;
         //存储服务器节点的id
@@ -56,6 +56,14 @@ public class ExecutionServiceImpl implements ExecutionService{
                 }
                 for(int k = 0; k < lineSplited.length-3; k++){
                     //更新每一个网络链路的容量， 如果小于0，就false；
+                    if(!graph.getMatrix().containsKey(lineSplited[k])){
+                        result.setData("The network node id is not exists in the case file, but is exists in result file, the id is :"+lineSplited[k]);
+                        return result;
+                    }
+                    if(!graph.getMatrix().get(lineSplited[k]).containsKey(lineSplited[k+1])){
+                        result.setData("The network node "+lineSplited[k]+" is not near by the network node "+lineSplited[k+1]);
+                        return result;
+                    }
                     Vertex currVertex = graph.getMatrix().get(lineSplited[k]).get(lineSplited[k+1]);
                     int leftVolume = currVertex.getVolume()-flow;
                     if(leftVolume < 0){
@@ -111,7 +119,7 @@ public class ExecutionServiceImpl implements ExecutionService{
     }
 
 
-    public DataSet parseDataSet(InputStream inputStream){
+    public DataSet parseDataSet(InputStream inputStream) throws DataSetException, IOException{
         Set<Relationship> relationships = new HashSet<Relationship>();
         Set<Consumer> consumers = new HashSet<Consumer>();
         int serverDeployCost = 0;
@@ -141,7 +149,10 @@ public class ExecutionServiceImpl implements ExecutionService{
                 String endNetworkId = strs[1];
                 int volume = Integer.valueOf(strs[2]);
                 int cost = Integer.valueOf(strs[3]);
-
+                if(relationships.contains(new Relationship(startNetworkId, endNetworkId, ""))){
+                    throw new DataSetException("There is multi edges in the case file, check the file and try again! startNetworkID: "+startNetworkId+", " +
+                            "targetNetworkID: "+endNetworkId);
+                }
                 Relationship relationship = new Relationship(startNetworkId, endNetworkId, "["+volume+"/"+cost+"]", volume, cost);
                 relationships.add(relationship);
             }
@@ -159,11 +170,7 @@ public class ExecutionServiceImpl implements ExecutionService{
                 relationships.add(relationship);
                 consumers.add(consumer);
             }
-        }
-        catch (IOException e) {
-            e.printStackTrace();
-        }
-        finally {
+        } finally {
             try {
                 if(br != null) {
                     br.close();
