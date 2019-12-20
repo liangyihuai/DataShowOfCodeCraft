@@ -3,13 +3,13 @@
 这个是华为CodeCraft2017算法结果检查工具（包含测试用例展示），初衷是为本人所在参赛组写一个算法结果检查和寻找问题的工具。在此跟大家分享：[网站地址](http://139.199.62.39:8080/)
 
 先贴两张效果图：
-![这里写图片描述](http://img.blog.csdn.net/20170324164131927?watermark/2/text/aHR0cDovL2Jsb2cuY3Nkbi5uZXQvbGlhbmd5aWh1YWk=/font/5a6L5L2T/fontsize/400/fill/I0JBQkFCMA==/dissolve/70/gravity/SouthEast)
+![这里写图片描述](images/1.png)
 上图：展示测试用例
 
-![这里写图片描述](http://img.blog.csdn.net/20170324164145741?watermark/2/text/aHR0cDovL2Jsb2cuY3Nkbi5uZXQvbGlhbmd5aWh1YWk=/font/5a6L5L2T/fontsize/400/fill/I0JBQkFCMA==/dissolve/70/gravity/SouthEast)
+![这里写图片描述](images/2.png)
 上图：检查算法结果，并给出原因
 
-![这里写图片描述](http://img.blog.csdn.net/20170324164320913?watermark/2/text/aHR0cDovL2Jsb2cuY3Nkbi5uZXQvbGlhbmd5aWh1YWk=/font/5a6L5L2T/fontsize/400/fill/I0JBQkFCMA==/dissolve/70/gravity/SouthEast)
+![这里写图片描述](images/3.png)
 上图：如果算法结果正确，计算出总费用和基本费用。基本费用是在每一个消费节点相邻的网络节点上部署服务器的总费用。
 
 上面几张图片基本展示了本工具所有的功能。总结如下：
